@@ -13,20 +13,16 @@ By This plugin you can set functions containing EFX, scenes, collections via you
 
 Options:
 
+![](https://cdn.discordapp.com/attachments/592354121479356448/821528110654554112/unknown.png)
 `Set Function` - Sets a function to be turned on, turned off, toogled with forcing other scenes to be turned off or not
 
 Parameters:
-
-`FunctionId` - Id of the function (You can see a list of functions on tsl_transmitter.html page, QLC+ section).
-
-`Visible` - Turn On, Turn Off or toogle.
-
-`ForceOthersToStop` - Variable to decide if you want to turn off other functions off and leave only this one as active.
+1. `FunctionId` - Id of the function (You can see a list of functions on tsl_transmitter.html page, QLC+ section).
+2. `Visible` - Turn On, Turn Off or toogle.
+3. `ForceOthersToStop` - Variable to decide if you want to turn off other functions off and leave only this one as active.
 
 `Get Function Status` - Gets a status of the function as Running, Stopped or Undefined
-
+![](https://cdn.discordapp.com/attachments/592354121479356448/821528719696986132/unknown.png)
 Parameters:
-
-`FunctionId` - Id of the function (You can see a list of functions on tsl_transmitter.html page, QLC+ section).
-
-`Variable` - Variable to put function status.
+1. `FunctionId` - Id of the function (You can see a list of functions on tsl_transmitter.html page, QLC+ section).
+2. `Variable` - Variable to put function status.
