@@ -1,4 +1,4 @@
-# LB-QLC-Control
+# LioranBoard Q Light Controller Plus Extension
 This QLC+.lbe is a LioranBoard extension to control Q Light Controller Plus software using webSockets
 
 **What is [LioranBoard](https://obsproject.com/forum/resources/lioranboard-stream-deck-animator.862/)?**
