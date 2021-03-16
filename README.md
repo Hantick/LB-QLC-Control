@@ -12,13 +12,21 @@ QLC+ Web API: https://www.qlcplus.org/Test_Web_API.html
 By This plugin you can set functions containing EFX, scenes, collections via your LioranBoard Streamdeck or Twitch points
 
 Options:
+
 `Set Function` - Sets a function to be turned on, turned off, toogled with forcing other scenes to be turned off or not
+
 Parameters:
+
 `FunctionId` - Id of the function (You can see a list of functions on tsl_transmitter.html page, QLC+ section).
+
 `Visible` - Turn On, Turn Off or toogle.
+
 `ForceOthersToStop` - Variable to decide if you want to turn off other functions off and leave only this one as active.
 
 `Get Function Status` - Gets a status of the function as Running, Stopped or Undefined
+
 Parameters:
+
 `FunctionId` - Id of the function (You can see a list of functions on tsl_transmitter.html page, QLC+ section).
+
 `Variable` - Variable to put function status.
