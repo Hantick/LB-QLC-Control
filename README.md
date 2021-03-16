@@ -21,8 +21,9 @@ Parameters:
 2. `Visible` - Turn On, Turn Off or toogle.
 3. `ForceOthersToStop` - Variable to decide if you want to turn off other functions off and leave only this one as active.
 
-`Get Function Status` - Gets a status of the function as Running, Stopped or Undefined
 ![](https://cdn.discordapp.com/attachments/592354121479356448/821528719696986132/unknown.png)
+`Get Function Status` - Gets a status of the function as Running, Stopped or Undefined
+
 Parameters:
 1. `FunctionId` - Id of the function (You can see a list of functions on tsl_transmitter.html page, QLC+ section).
 2. `Variable` - Variable to put function status.
