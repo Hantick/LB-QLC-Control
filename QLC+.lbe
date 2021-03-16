@@ -1,0 +1,125 @@
+[extension_name]
+QLC +
+
+[insert_external]
+<div>
+	<span id="toqlcclient" class="disconnected">Not connected.</span>
+	<button onclick="refreshFunctions()" type="button">Refresh Functions</button>
+	<div id="function-list">Functions:</div>
+</div>
+
+[insert_command]
+lioranboardclient.send('{"type":"MESSAGE","topic":"ExtensionCommand","name":"QLC+ Set Function","boxcount":3,"boxname1":"FunctionId","boxtype1":"integer", "boxname2":"Visible|1|0|toogle|","boxtype2":"string","boxname3":"ForceOthersToStop","boxtype3":"boolean"}');
+lioranboardclient.send('{"type":"MESSAGE","topic":"ExtensionCommand","name":"QLC+ Get Function Status","boxcount":2,"boxname1":"FunctionId","boxtype1":"integer","boxname2":"Variable","boxtype2":"string",}');
+//lioranboardclient.send('{"type":"MESSAGE","topic":"ExtensionCommand","name":"QLC+ Get Functions"}');
+
+[insert_hook]
+case "QLC+SetFunction": {
+	QLCSetFunction(LioranBoardJSON.FunctionId, LioranBoardJSON.Visible, LioranBoardJSON.ForceOthersToStop)
+} break
+case "QLC+GetFunctionStatus": {
+	variableForStatus = LioranBoardJSON.variable;
+	qlcclient.send("QLC+API|getFunctionStatus|" + LioranBoardJSON.FunctionId);
+} break
+// case "QLC+GetFunctions": {
+// 	qlcclient.send("QLC+API|getFunctionsList");
+// } break
+[insert_script]
+//main connection to Q Light Controller +
+var lastFunctionId;
+var variableForStatus;
+var isAskingForFunctionStatus = false;
+let functions = [];
+connecttoqlc()
+function connecttoqlc() {
+	var urlQlc = "ws://127.0.0.1:9999/qlcplusWS";
+	qlcclient = (new WebSocket(urlQlc));
+	qlcclient.binaryType = "arraybuffer";
+	//reconnect on disconnect
+	qlcclient.onclose = function (event) {
+		ConnectionStatus("toqlcclient", "disconnected", "Disconnected from QLC+.")
+		lioranboardclient.send(JSON.stringify({ "type": "MESSAGE", "topic": "AlertMessage", "message": "Disconnected from QLC+, attempting to reconnect in 10 seconds." }));
+		setTimeout(function () { connecttoqlc(); }, 10000);
+	};
+	//notice that connection is established
+	qlcclient.onopen = function (event) {
+		ConnectionStatus("toqlcclient", "connected", "Connected to QLC+.")
+		lioranboardclient.send(JSON.stringify({ "type": "MESSAGE", "topic": "AlertMessage", "message": "Connected to QLC+." }));
+		refreshFunctions();
+	};
+	qlcclient.onmessage = function (ev) {
+		var msgParams = ev.data.split("|");
+		console.log("QLC Message: " + ev.data);
+		if (msgParams[0] === "QLC+API") {
+			if (isAskingForFunctionStatus && msgParams[1] == "getFunctionStatus") {
+				switch (msgParams[2]) {
+					case "Stopped":
+						qlcclient.send("QLC+API|setFunctionStatus|" + lastFunctionId + "|1");
+						break;
+					case "Running":
+						qlcclient.send("QLC+API|setFunctionStatus|" + lastFunctionId + "|0");
+						break;
+					case "Undefined":
+						lioranboardclient.send(JSON.stringify({ "type": "MESSAGE", "topic": "AlertMessage", "message": "Asked QLC+ for not existing function status." }));
+						break;
+				}
+				isAskingForFunctionStatus = false;
+				lastFunctionId = undefined;
+			}
+			else if (msgParams[1] == "getFunctionStatus") {
+				lioranboardclient.send(JSON.stringify({ "type": "MESSAGE", "topic": "SetVariable", "variable": variableForStatus, "value": msgParams[2] }));
+				variableForStatus = undefined;
+			}
+			else if (msgParams[1] == "getFunctionsList") {
+				for (var i = 2; i < msgParams.length; i = i + 2) {
+					functions.push({ "Id": msgParams[i], "Name": msgParams[i + 1] });
+				}
+				//lioranboardclient.send(JSON.stringify({ "type": "MESSAGE", "topic": "PopupMessage", "message": JSON.stringify(strings) }));
+				var listDiv = document.getElementById('function-list');
+				var ul = document.createElement('ul');
+				for (var i = 0; i < functions.length; ++i) 
+				{
+					var li = document.createElement('li');
+					li.innerHTML = functions[i].Id + " - " + functions[i].Name;
+					ul.appendChild(li);
+				}
+				listDiv.appendChild(ul);
+			}
+		}
+	};
+};
+
+function QLCSetFunction(functionId, Visible, ForceOthersToStop) {
+	if(ForceOthersToStop)
+	{
+		QLCDisableFunctions();
+	}
+	switch (Visible) {
+		case "toogle":
+			isAskingForFunctionStatus = true;
+			lastFunctionId = functionId;
+			qlcclient.send("QLC+API|getFunctionStatus|" + functionId);
+			break;
+		default:
+			qlcclient.send("QLC+API|setFunctionStatus|" + functionId + "|"+ Visible);
+			break;
+	}
+}
+function QLCDisableFunctions() {
+	if(functions.length > 0){
+		functions.forEach((elem,index) =>
+		{
+			qlcclient.send("QLC+API|setFunctionStatus|"+elem.Id+"|0");
+		})
+	}
+}
+function refreshFunctions(){
+	var listDiv = document.getElementById('function-list');
+	listDiv.innerHTML  = '';
+	functions = [];
+	qlcclient.send("QLC+API|getFunctionsList");
+}
+[insert_over]
+
+[force]
+transmitter = "1"
