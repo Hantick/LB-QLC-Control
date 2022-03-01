@@ -1,0 +1,207 @@
+[extension_name]
+QLC Plus
+
+[extension_info]
+QLC extension allows to control Q Light Controller Plus software
+
+[insert_external]
+	<div>
+		<span>QLC+: <span id="toqlcclient" class="disconnected">Disconnected</span></span>
+		<br></br>
+		<div id="testing" style = "display: none;">
+			<div>
+				<div><h4>Functions:</h4></div>
+				<button onclick="loadFunctions()" type="submit" class="btn btn-primary btn-sm me-1">Load Functions</button>
+				<div id="function-list"></div>
+			</div>
+			<div><h4>Test functions:</h4></div>
+
+			<div>
+				<button onclick="setFunction()" type="submit" class="btn btn-primary btn-sm me-1">Test Set Function</button>
+				<a class="tslCollapse collapsed" data-bs-toggle="collapse" role="button" href="#hidesetfunction" aria-controls="hidesetfunction"></a>
+					<div id="hidesetfunction" class="collapse">
+						Function ID: <input id="function-to-set" type="number" min="0" value="0"></input>
+						Status: <input id="function-status-to-set" type="number" min="0" max="1" value="0"></input>
+						<input id="function-stop-other-functions-to-set" type="checkbox" class="form-check-input"></input> Stop other functions
+						</div>
+				
+			</div>
+			<div>
+				<button onclick="getFunction()" type="submit" class="btn btn-primary btn-sm me-1">Test Get Function</button>
+					Function ID: <input id="function-to-get" type="number" min="0" value="0"></input>
+			</div>
+			<div id="getFunctionStatus"></div>
+			<br></br>
+		</div>
+		<div><i>You like the project? Please consider donating.</i>
+		<form action="https://www.paypal.com/donate" method="post" target="_top">
+		<input type="hidden" name="hosted_button_id" value="5HNJGX6SCWHLY" />
+		<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
+		<img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" />
+		</form>
+		</div>
+		<div><i>Created by <a href="https://github.com/Hantick" target="_blank">Hantick</a> from Saffron Software</i></div>
+	</div>
+	
+<script>
+function setFunction() {
+  let functionId = document.getElementById("function-to-set").value;
+  let functionStatus = document.getElementById("function-status-to-set").value;
+  let functionStopOthers = document.getElementById("function-stop-other-functions-to-set").value;
+  qlcSetFunctionStatus(functionId, functionStatus, functionStopOthers);
+}
+
+function getFunction() {
+  let functionId = document.getElementById("function-to-get").value;
+  qlcclient.send("QLC+API|getFunctionStatus|" + functionId);
+}
+
+</script>
+
+[insert_command]
+LB.extCommand('QLC+ Set Function Status', 255255255, 52, {
+	FunctionId: ['FunctionId', 14, ''],
+	Visible: ['Visible', 19, '', null, ['0', '1', 'toggle']],
+	ForceOthersToStop: ['ForceOthersToStop', 2, 1],
+	})
+
+LB.extCommand('QLC+ Get Function Status', 255255255, 52, {
+	FunctionId: ['FunctionId', 14, ''],
+	Variable: ['FunctionStatusVariable', 15, ''],
+	})
+
+[insert_hook]
+case "QLC+ Set Function Status": {
+	qlcSetFunctionStatus(LioranBoardJSON.FunctionId, LioranBoardJSON.Visible, LioranBoardJSON.ForceOthersToStop)
+} break
+case "QLC+ Get Function Status": {
+	variableForStatus = LioranBoardJSON.variable;
+	qlcclient.send("QLC+API|getFunctionStatus|" + LioranBoardJSON.FunctionId);
+} break
+
+[insert_script]
+//main connection to Q Light Controller +
+var lastFunctionId;
+var variableForStatus;
+var getFunctionStatus;
+var isAskingForFunctionStatus = false;
+let functions = [];
+connecttoqlc()
+
+function connecttoqlc() {
+	var urlQlc = "ws://127.0.0.1:9999/qlcplusWS";
+	qlcclient = (new WebSocket(urlQlc));
+	qlcclient.binaryType = "arraybuffer";
+
+	//reconnect on disconnect
+	qlcclient.onclose = function (event) {
+		ConnectionStatus("toqlcclient", "disconnected", "Disconnected")
+		hideTesting();
+		LB.alert(JSON.stringify({ "type": "MESSAGE", "topic": "AlertMessage", "message": "Disconnected from QLC+, attempting to reconnect in 10 seconds." }));
+		setTimeout(function () { connecttoqlc(); }, 10000);
+	};
+
+	//notice that connection is established
+	qlcclient.onopen = function (event) {
+		getFunctionsNumber();
+		showTesting();
+		ConnectionStatus("toqlcclient", "connected", "Connected")
+		lioranboardClient.popUp(JSON.stringify({ "type": "MESSAGE", "topic": "AlertMessage", "message": "Connected to QLC+." }));
+	};
+
+	qlcclient.onmessage = function (ev) {
+		var msgParams = ev.data.split("|");
+		console.log("QLC Message: " + ev.data);
+		if (msgParams[0] === "QLC+API") {
+			if (isAskingForFunctionStatus && msgParams[1] == "getFunctionStatus") {
+				switch (msgParams[2]) {
+					case "Stopped":
+						qlcclient.send("QLC+API|setFunctionStatus|" + lastFunctionId + "|1");
+						break;
+					case "Running":
+						qlcclient.send("QLC+API|setFunctionStatus|" + lastFunctionId + "|0");
+						break;
+					case "Undefined":
+						LB.alert(JSON.stringify({ "type": "MESSAGE", "topic": "AlertMessage", "message": "Asked QLC+ for not existing function status." }));
+						break;
+				}
+				isAskingForFunctionStatus = false;
+				lastFunctionId = undefined;
+			}
+			else if (msgParams[1] == "getFunctionsNumber") {
+				document.getElementById('function-to-set').max = msgParams[2] - 1;
+				document.getElementById('function-to-get').max = msgParams[2] - 1;
+				variableForStatus = undefined;
+			}
+			else if (msgParams[1] == "getFunctionStatus") {
+				getFunctionStatus = msgParams[2];
+				LB.setVariable("QLCGetFunctionStatus", msgParams[2], 'global');
+				variableForStatus = undefined;
+				document.getElementById("getFunctionStatus").innerHTML = "Function status: " + getFunctionStatus;
+			}
+			
+			else if (msgParams[1] == "getFunctionsList") {
+				for (var i = 2; i < msgParams.length; i = i + 2) {
+					functions.push({ "Id": msgParams[i], "Name": msgParams[i + 1] });
+				}
+				//LB.send(JSON.stringify({ "type": "MESSAGE", "topic": "PopupMessage", "message": JSON.stringify(strings) }));
+				var listDiv = document.getElementById('function-list');
+				var ul = document.createElement('ul');
+				for (var i = 0; i < functions.length; ++i) 
+				{
+					var li = document.createElement('li');
+					li.innerHTML = functions[i].Id + " - " + functions[i].Name;
+					ul.appendChild(li);
+				}
+				listDiv.appendChild(ul);
+			}
+		}
+	};
+};
+
+function qlcSetFunctionStatus(functionId, status, forceOthersToStop) {
+	console.log("QLC Message: setFunctionStatus: functionId: " + functionId + " status: " + status + " forceOthersToStop: " + forceOthersToStop);
+	if(forceOthersToStop)
+	{
+		qlcDisableFunctions();
+	}
+	switch (status) {
+		case "toggle":
+			isAskingForFunctionStatus = true;
+			lastFunctionId = functionId;
+			qlcclient.send("QLC+API|getFunctionStatus|" + functionId);
+			break;
+		default:
+			qlcclient.send("QLC+API|setFunctionStatus|" + functionId + "|"+ status);
+			break;
+	}
+}
+
+function qlcDisableFunctions() {
+	if(functions.length > 0){
+		functions.forEach((elem,index) =>
+		{
+			qlcclient.send("QLC+API|setFunctionStatus|"+elem.Id+"|0");
+		})
+	}
+}
+
+function showTesting() {
+	document.getElementById('testing').style.display = "";
+}
+
+function hideTesting() {
+	document.getElementById('testing').style.display = "none";
+}
+
+function loadFunctions(){
+	var listDiv = document.getElementById('function-list');
+	listDiv.innerHTML  = '';
+	functions = [];
+	qlcclient.send("QLC+API|getFunctionsList");
+}
+
+function getFunctionsNumber(){
+	qlcclient.send("QLC+API|getFunctionsNumber");
+}
+[insert_over]
