@@ -35,6 +35,11 @@ where:
 
 `-o` - program loads up a workspace on startup
 
+
+You can also create a shortcut with flags
+![image](https://user-images.githubusercontent.com/36815427/156162647-161fa0dd-cea0-453b-a947-a0523549544f.png)
+
+
 Now you open LioranBoard software and run transmiter.html file (normally you would put it in OBS as a source)
 On the transmitter page you can check your connection to QLC +
 ![image](https://user-images.githubusercontent.com/36815427/156151422-6f7696b8-1cb7-46c6-9d3e-683c3128e980.png)
