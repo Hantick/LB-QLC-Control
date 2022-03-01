@@ -1,4 +1,4 @@
-# LioranBoard Q Light Controller Plus Extension
+# LioranBoard Q Light Controller Plus DMX lights Extension
 This QLC+.lbe is a LioranBoard extension to control Q Light Controller Plus software using webSockets.
 
 *You like the project? Please consider donating.* 
