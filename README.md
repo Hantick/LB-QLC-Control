@@ -37,8 +37,8 @@ where:
 
 
 You can also create a shortcut with flags
-![image](https://user-images.githubusercontent.com/36815427/156162647-161fa0dd-cea0-453b-a947-a0523549544f.png)
 
+![image](https://user-images.githubusercontent.com/36815427/156162647-161fa0dd-cea0-453b-a947-a0523549544f.png)
 
 Now you open LioranBoard software and run transmiter.html file (normally you would put it in OBS as a source)
 On the transmitter page you can check your connection to QLC +
