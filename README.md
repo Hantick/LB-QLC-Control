@@ -18,7 +18,7 @@ QLC+ Web API: https://www.qlcplus.org/Test_Web_API.html
 By This plugin you can set functions containing EFX, scenes, collections via your LioranBoard Streamdeck and LioranBoard triggers.
 
 # Example functionality
-https://clips.twitch.tv/embed?clip=RealToughGoatFUNgineer-ydh1H6l36dCUm6It&parent=www.example.com
+https://clips.twitch.tv/embed?clip=RealToughGoatFUNgineer-ydh1H6l36dCUm6It
 
 # Setup
 To setup the extension simply install it on LioranBoard software.
