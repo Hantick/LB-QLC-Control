@@ -17,6 +17,9 @@ This extension is based on WebSockets and communicates with QLC+ using QLC Web A
 QLC+ Web API: https://www.qlcplus.org/Test_Web_API.html
 By This plugin you can set functions containing EFX, scenes, collections via your LioranBoard Streamdeck and LioranBoard triggers.
 
+# Example functionality
+https://clips.twitch.tv/embed?clip=RealToughGoatFUNgineer-ydh1H6l36dCUm6It&parent=www.example.com
+
 # Setup
 To setup the extension simply install it on LioranBoard software.
 To prepare QLC + you have to run the program with websocket flags. To do it simply run it with `-w` flag which means websockets have to be turned on.
