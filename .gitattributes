@@ -1,0 +1,3 @@
+# Declare files that will always have CRLF line endings on checkout.
+*.lb2 text eol=crlf
+*.lbe text eol=crlf
